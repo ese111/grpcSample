@@ -1,6 +1,9 @@
+import com.google.protobuf.gradle.id
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
+    alias(libs.plugins.protobuf)
 }
 
 android {
@@ -49,6 +52,51 @@ android {
     }
 }
 
+val grpcProtobufVersion = "3.21.12"
+val grpcVersion = "1.57.0"
+val grpcKotlinVersion = "1.3.0"
+val protobufVersion = "0.8.18"
+
+protobuf {
+
+    protoc {
+        artifact = "com.google.protobuf:protoc:$grpcProtobufVersion"
+    }
+
+    plugins {
+        id("java") {
+            artifact = "io.grpc:protoc-gen-grpc-java:$grpcVersion"
+        }
+        id("grpc") {
+            artifact = "io.grpc:protoc-gen-grpc-java:$grpcVersion"
+        }
+        id("grpckt") {
+            artifact = "io.grpc:protoc-gen-grpc-kotlin:$grpcKotlinVersion:jdk8@jar"
+        }
+    }
+
+    generateProtoTasks {
+        all().forEach { generateProtoTask ->
+            generateProtoTask.plugins {
+                id("java") {
+                    option("lite")
+                }
+                id("grpc") {
+                    option("lite")
+                }
+                id("grpckt") {
+                    option("lite")
+                }
+            }
+            generateProtoTask.builtins {
+                id("kotlin") {
+                    option("lite")
+                }
+            }
+        }
+    }
+}
+
 dependencies {
 
     implementation(libs.androidx.core.ktx)
@@ -66,4 +114,10 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    implementation(libs.grpc.kotlin.stub)
+    implementation(libs.grpc.okhttp)
+    implementation(libs.grpc.stub)
+    implementation(libs.grpc.protobuf.lite)
+    implementation(libs.protobuf.kotlin.lite)
 }
